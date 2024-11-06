@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.DatePicker?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.RowConstraints?>
+
+<GridPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="620.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="co.edu.uniquindio.reservasUq.controlador.CrearReservaControlador">
+  <columnConstraints>
+    <ColumnConstraints hgrow="SOMETIMES" maxWidth="200.0" minWidth="10.0" prefWidth="160.0" />
+    <ColumnConstraints hgrow="SOMETIMES" maxWidth="350.3999328613281" minWidth="10.0" prefWidth="310.5999755859375" />
+      <ColumnConstraints hgrow="SOMETIMES" maxWidth="200.0" minWidth="10.0" prefWidth="160.0" />
+  </columnConstraints>
+  <rowConstraints>
+      <RowConstraints maxHeight="204.59998168945313" minHeight="10.0" prefHeight="44.40001220703125" vgrow="SOMETIMES" />
+    <RowConstraints maxHeight="329.00001792907716" minHeight="10.0" prefHeight="193.59999999999997" vgrow="SOMETIMES" />
+    <RowConstraints maxHeight="251.99999084472654" minHeight="10.0" prefHeight="79.20002441406251" vgrow="SOMETIMES" />
+    <RowConstraints maxHeight="107.80000000000001" minHeight="10.0" prefHeight="83.99997558593753" vgrow="SOMETIMES" />
+  </rowConstraints>
+   <children>
+      <TableView fx:id="instalacionTableView" prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="1">
+        <columns>
+          <TableColumn fx:id="colNombre" prefWidth="111.20001220703125" text="Nombre" />
+          <TableColumn fx:id="colAforo" prefWidth="98.39996337890625" text="Aforo" />
+            <TableColumn fx:id="colCosto" prefWidth="97.60003662109375" text="Costo" />
+        </columns>
+      </TableView>
+      <DatePicker fx:id="fecha" prefHeight="26.0" prefWidth="219.0" promptText="Fecha" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.rowIndex="2" GridPane.valignment="TOP">
+         <GridPane.margin>
+            <Insets top="10.0" />
+         </GridPane.margin>
+      </DatePicker>
+      <ComboBox fx:id="horaComboBox" prefHeight="26.0" prefWidth="222.0" promptText="Hora" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.rowIndex="2" GridPane.valignment="BOTTOM" />
+      <Button mnemonicParsing="false" onAction="#crearReserva" prefHeight="26.0" prefWidth="90.0" text="Reservar" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.rowIndex="3" />
+   </children>
+</GridPane>
