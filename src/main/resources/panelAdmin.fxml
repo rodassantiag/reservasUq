@@ -47,7 +47,7 @@
             <Insets top="30.0" />
          </padding>
       </HBox>
-      <Button onAction="#irCrearInstalacion" mnemonicParsing="false" text="Instalaciones" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+      <Button onAction="#irCrearInstalacion" mnemonicParsing="false" text="Crear Instalación" GridPane.columnIndex="1" GridPane.rowIndex="3" />
       <Label text="Tabla Reservas:" GridPane.columnIndex="1" GridPane.rowIndex="1">
          <font>
             <Font name="System Bold" size="12.0" />
