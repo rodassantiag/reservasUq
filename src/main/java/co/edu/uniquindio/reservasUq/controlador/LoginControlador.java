@@ -2,7 +2,6 @@ package co.edu.uniquindio.reservasUq.controlador;
 
 import co.edu.uniquindio.reservasUq.modelo.Persona;
 import co.edu.uniquindio.reservasUq.modelo.enums.Rol;
-import co.edu.uniquindio.reservasUq.modelo.enums.TipoUsuario;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.PasswordField;

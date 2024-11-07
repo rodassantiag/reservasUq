@@ -5,7 +5,7 @@ import co.edu.uniquindio.reservasUq.modelo.Instalacion;
 import co.edu.uniquindio.reservasUq.modelo.Persona;
 import co.edu.uniquindio.reservasUq.modelo.Reserva;
 import co.edu.uniquindio.reservasUq.modelo.enums.DiaSemana;
-import co.edu.uniquindio.reservasUq.observador.ObservableReservas;
+import co.edu.uniquindio.reservasUq.observador.Observable;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
@@ -39,7 +39,7 @@ public class CrearReservaControlador implements Initializable {
     private DatePicker fecha;
     @FXML
     private ComboBox<LocalTime> horaComboBox;
-    private ObservableReservas observableReservas;
+    private Observable observable;
 
     private List<Reserva> reservas = new ArrayList<>();
 
@@ -54,15 +54,13 @@ public class CrearReservaControlador implements Initializable {
             LocalDate diaSeleccionado = fecha.getValue();
             LocalTime horaSeleccionada = horaComboBox.getValue();
             LocalDateTime fechaReservada = LocalDateTime.of(diaSeleccionado, horaSeleccionada);
-
-            System.out.println(fechaReservada);
-
             Reserva reserva = controladorPrincipal.crearReserva(usuario, instalacion, fechaReservada);
             reservas.add(reserva);
 
-            controladorPrincipal.crearAlerta("La instalación ha sido reservada exitosamente", Alert.AlertType.INFORMATION);
+            controladorPrincipal.crearAlerta("La reserva de la instalación se ha realizado con éxito. Se ha enviado un correo electrónico de confirmación con los detalles de su reserva", Alert.AlertType.INFORMATION);
+            controladorPrincipal.correoConfirmacion(reserva);
             cerrarVentana();
-            observableReservas.notificar();
+            observable.notificar();
         } catch (Exception e) {
             controladorPrincipal.crearAlerta(e.getMessage(), Alert.AlertType.ERROR);
         }
@@ -75,7 +73,7 @@ public class CrearReservaControlador implements Initializable {
 
 
     public void cargarInstalaciones(){
-        colNombre.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getNombre()));
+        colNombre.setCellValueFactory(cellData -> new SimpleStringProperty(String.valueOf(cellData.getValue().getTipoInstalacion())));
         colAforo.setCellValueFactory(cellData -> new SimpleStringProperty(String.valueOf(cellData.getValue().getAforo())));
         colCosto.setCellValueFactory(cellData -> new SimpleStringProperty(String.valueOf(cellData.getValue().getCosto())));
         instalacionTableView.setItems(FXCollections.observableArrayList(controladorPrincipal.getReservasUq().getInstalaciones()));
@@ -124,20 +122,32 @@ public class CrearReservaControlador implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         horaComboBox.setDisable(true);
+        fecha.setDisable(true);
         cargarInstalaciones();
+
+        instalacionTableView.getSelectionModel().selectedItemProperty().addListener((observable, oldInstalacion, newInstalacion) -> {
+            if (newInstalacion != null) {
+                fecha.setDisable(false);
+            } else {
+                fecha.setDisable(true);
+                horaComboBox.setDisable(true);
+            }
+        });
+
         fecha.valueProperty().addListener((observable, oldDate, newDate) -> {
             Instalacion instalacionSeleccionada = instalacionTableView.getSelectionModel().getSelectedItem();
             if (instalacionSeleccionada != null && newDate != null) {
                 horaComboBox.setDisable(false);
                 cargarHorasComboBox(instalacionSeleccionada, newDate);
+            } else {
+                horaComboBox.setDisable(true);
             }
         });
-
-
     }
 
-    public void inicializarObservable(ObservableReservas observableReservas){
-        this.observableReservas = observableReservas;
+
+        public void inicializarObservable(Observable observable){
+        this.observable = observable;
 
     }
 }

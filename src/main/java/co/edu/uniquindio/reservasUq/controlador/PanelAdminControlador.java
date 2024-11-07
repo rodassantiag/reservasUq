@@ -1,144 +1,75 @@
 package co.edu.uniquindio.reservasUq.controlador;
 
-import co.edu.uniquindio.reservasUq.modelo.Horario;
-import co.edu.uniquindio.reservasUq.modelo.Instalacion;
-import co.edu.uniquindio.reservasUq.observador.ObservableHorarios;
+import co.edu.uniquindio.reservasUq.modelo.Persona;
+import co.edu.uniquindio.reservasUq.modelo.Reserva;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
-import javafx.scene.control.Alert;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
+import javafx.scene.text.Text;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.net.URL;
-import java.util.List;
 import java.util.ResourceBundle;
 
 @Getter
 @Setter
-public class PanelAdminControlador implements Initializable, ObservableHorarios {
+public class PanelAdminControlador implements Initializable {
+
+    private Persona persona;
+    @FXML
+    private TableView<Reserva> reservaTableView;
+    @FXML
+    private TableColumn<Reserva, String> colId, colFechaReserva, colNombrePersona, colIdPersona, colTipoPersona, colInstalacion,
+             colFechaReservada, colCosto;
+    @FXML
+    private Text nombre, rol;
 
     private final ControladorPrincipal controladorPrincipal = ControladorPrincipal.getInstancia();
-    private Instalacion instalacionSeleccionada;
-    @FXML
-    private TextField txtNombre, txtAforo, txtCosto;
-    @FXML
-    private TableColumn<Instalacion, String> colId, colNombre, colAforo, colCosto;
-    @FXML
-    private TableView<Instalacion> instalacionTableView;
-    @FXML
-    private TableColumn<Horario, String> colDia, colHoraInicio, colHoraFin;
-    @FXML
-    private TableView<Horario> horarioTableView;
 
-    private ObservableHorarios observableHorarios;
-
-
-    public void agregarInstalacion(){
-        try {
-            String nombre = txtNombre.getText();
-            String aforoTexto = txtAforo.getText();
-            String costoTexto = txtCosto.getText();
-
-            if (!aforoTexto.matches("\\d+") || aforoTexto.isBlank()) {
-                throw new Exception("El aforo debe ser un número entero válido");
-            }
-
-            if (!costoTexto.matches("\\d+") ||costoTexto.isBlank()) {
-                throw new Exception("Costo inválido");
-            }
-
-            int aforo = Integer.parseInt(aforoTexto);
-            float costo = Float.parseFloat(costoTexto);
-
-            List<Horario> horarios = horarioTableView.getItems();
-            controladorPrincipal.crearInstalacion(nombre, aforo, costo, horarios);
-            instalacionTableView.setItems(FXCollections.observableArrayList(controladorPrincipal.getReservasUq().getInstalaciones()));
-            limpiarCampos();
-            controladorPrincipal.crearAlerta("La instalación se ha creado exitosamente", Alert.AlertType.INFORMATION);
-
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            controladorPrincipal.crearAlerta(e.getMessage(), Alert.AlertType.ERROR);
-        }
-    }
-
-    public void irInicio() throws Exception{
-        controladorPrincipal.navegarVentana("/inicio.fxml", "Inicio");
-        controladorPrincipal.cerrarVentana(instalacionTableView);
-    }
-
-    public void limpiarCampos(){
-        txtNombre.clear();
-        txtAforo.clear();
-        txtCosto.clear();
-        horarioTableView.setItems(FXCollections.observableArrayList());
+    public PanelAdminControlador(){
+        this.persona = controladorPrincipal.obtenerSesion();
     }
 
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
+        if (this.persona != null){
+            this.nombre.setText(persona.getCorreo());
+            this.rol.setText(persona.getRol().toString());
+        }
+
+        cargarValores();
+
+
+    }
+
+    public void cargarValores(){
         colId.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getId()));
-        colNombre.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getNombre()));
-        colAforo.setCellValueFactory(cellData -> new SimpleStringProperty(String.valueOf(cellData.getValue().getAforo())));
-        colCosto.setCellValueFactory(cellData -> new SimpleStringProperty(String.valueOf(cellData.getValue().getCosto())));
-        instalacionTableView.setItems(FXCollections.observableArrayList(controladorPrincipal.getReservasUq().getInstalaciones()));
+        colFechaReserva.setCellValueFactory(cellData -> new SimpleStringProperty(String.valueOf(cellData.getValue().getFechaReserva())));
+        colNombrePersona.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getPersona().getNombre()));
+        colIdPersona.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getPersona().getCedula()));
+        colTipoPersona.setCellValueFactory(cellData -> new SimpleStringProperty(String.valueOf(cellData.getValue().getPersona().getTipoUsuario())));
+        colInstalacion.setCellValueFactory(cellData -> new SimpleStringProperty(String.valueOf(cellData.getValue().getInstalacion().getTipoInstalacion())));
+        colFechaReservada.setCellValueFactory(cellData -> new SimpleStringProperty(String.valueOf(cellData.getValue().getFechaReservada())));
+        colCosto.setCellValueFactory(cellData -> new SimpleStringProperty(String.valueOf(cellData.getValue().getInstalacion().getCosto())));
+        reservaTableView.setItems(FXCollections.observableArrayList(controladorPrincipal.getReservasUq().getReservas()));
 
-        colDia.setCellValueFactory(cellData -> new SimpleStringProperty(String.valueOf(cellData.getValue().getDia())));
-        colHoraInicio.setCellValueFactory(cellData -> new SimpleStringProperty(String.valueOf(cellData.getValue().getInicio())));
-        colHoraFin.setCellValueFactory(cellData -> new SimpleStringProperty(String.valueOf(cellData.getValue().getFin())));
 
     }
 
-    public void abrirVentanaHorario(ActionEvent actionEvent) {
-        try {
-            FXMLLoader loader = controladorPrincipal.navegarVentana("/crearHorario.fxml", "Horario");
-            CrearHorarioControlador crearHorarioControlador = loader.getController();
-            crearHorarioControlador.inicializarObservable(this);
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
-        }
+    public void irCrearInstalacion() throws Exception {
+        controladorPrincipal.navegarVentana("/crearInstalacion.fxml", "Crear Instalación");
+        controladorPrincipal.cerrarVentana(nombre);
     }
 
-
-
-    @Override
-    public void notificar(List<Horario> nuevosHorarios) {
-        ObservableList<Horario> horariosActuales = horarioTableView.getItems();
-        ObservableList<Horario> horariosBuenos = FXCollections.observableArrayList();
-
-        if(!horariosActuales.isEmpty()) {
-            for (Horario horario1 : nuevosHorarios) {
-                boolean repetido = false;
-                for (Horario horario : horariosActuales) {
-                    if (horario.getDia() == horario1.getDia()) {
-                        repetido = true;
-                    }
-                }
-
-                if(!repetido){
-                    horariosBuenos.add(horario1);
-                }
-
-            }
-            horariosActuales.addAll(horariosBuenos);
-        }else{
-            horariosActuales.addAll(nuevosHorarios);
-        }
-
-        horarioTableView.setItems(FXCollections.observableArrayList(horariosActuales));
-
+    public void  cerrarSesion() throws Exception {
+        controladorPrincipal.eliminarSesion();
+        controladorPrincipal.navegarVentana("/inicio.fxml", "Inicio");
+        controladorPrincipal.cerrarVentana(reservaTableView);
     }
-
-
-
 }

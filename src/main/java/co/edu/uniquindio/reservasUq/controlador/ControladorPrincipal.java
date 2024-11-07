@@ -2,6 +2,7 @@ package co.edu.uniquindio.reservasUq.controlador;
 
 import co.edu.uniquindio.reservasUq.modelo.*;
 import co.edu.uniquindio.reservasUq.modelo.enums.DiaSemana;
+import co.edu.uniquindio.reservasUq.modelo.enums.TipoInstalacion;
 import co.edu.uniquindio.reservasUq.modelo.enums.TipoUsuario;
 import co.edu.uniquindio.reservasUq.servicio.ServiciosReservas;
 import co.edu.uniquindio.reservasUq.utils.Sesion;
@@ -84,8 +85,8 @@ public class ControladorPrincipal implements ServiciosReservas {
     }
 
     @Override
-    public void crearInstalacion(String nombre, int aforo, float costo, List<Horario> horarios) throws Exception {
-        reservasUq.crearInstalacion(nombre, aforo, costo, horarios);
+    public void crearInstalacion(TipoInstalacion tipoInstalacion, int aforo, float costo, List<Horario> horarios) throws Exception {
+        reservasUq.crearInstalacion(tipoInstalacion, aforo, costo, horarios);
     }
 
     @Override
@@ -104,18 +105,19 @@ public class ControladorPrincipal implements ServiciosReservas {
     }
 
     @Override
-    public void cancelarReserva(Reserva reserva) throws Exception {
-        reservasUq.cancelarReserva(reserva);
+    public void cancelarReserva(String idReserva){
+        reservasUq.cancelarReserva(idReserva);
     }
 
-    @Override
-    public void obtenerreservasPersona(List<Reserva> reservas, LocalDateTime fecha) throws Exception {
-        reservasUq.obtenerreservasPersona(reservas, fecha);
-    }
 
     @Override
     public List<Reserva> obtenerReservas(String idPersona) {
         return reservasUq.obtenerReservas(idPersona);
+    }
+
+    @Override
+    public void correoConfirmacion(Reserva reserva) {
+        reservasUq.correoConfirmacion(reserva);
     }
 
 

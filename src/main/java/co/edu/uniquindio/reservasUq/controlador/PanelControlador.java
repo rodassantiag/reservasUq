@@ -1,10 +1,8 @@
 package co.edu.uniquindio.reservasUq.controlador;
 
-import co.edu.uniquindio.reservasUq.modelo.Horario;
 import co.edu.uniquindio.reservasUq.modelo.Persona;
 import co.edu.uniquindio.reservasUq.modelo.Reserva;
-import co.edu.uniquindio.reservasUq.observador.ObservableHorarios;
-import co.edu.uniquindio.reservasUq.observador.ObservableReservas;
+import co.edu.uniquindio.reservasUq.observador.Observable;
 import co.edu.uniquindio.reservasUq.utils.Sesion;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -21,21 +19,24 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.ResourceBundle;
 
 @Getter
 @Setter
-public class PanelControlador implements Initializable, ObservableReservas {
+public class PanelControlador implements Initializable, Observable {
 
     private Persona persona;
 
     @FXML
     private Text nombre, tipoPersona;
     @FXML
-    private TableColumn<Reserva, String> colId, colFecha, colInstalacion;
+    private TableColumn<Reserva, String> colId, colFecha, colInstalacion, colCosto;
     @FXML
     private TableView<Reserva> reservaTableView;
+
+    private ObservableList<Reserva> observableList;
 
     private final ControladorPrincipal controladorPrincipal = ControladorPrincipal.getInstancia();
 
@@ -43,16 +44,19 @@ public class PanelControlador implements Initializable, ObservableReservas {
         this.persona = controladorPrincipal.obtenerSesion();
     }
 
-    public void cancelarReserva(ActionEvent actionEvent){
-        try {
-            Reserva reserva = reservaTableView.getSelectionModel().getSelectedItem();
-            controladorPrincipal.cancelarReserva(reserva);
-            controladorPrincipal.crearAlerta("La reserva ha sido cancelada", Alert.AlertType.INFORMATION);
-        } catch (Exception e) {
-            controladorPrincipal.crearAlerta(e.getMessage(), Alert.AlertType.ERROR);
+    public void cancelarReserva(ActionEvent actionEvent) {
+        Reserva reserva = reservaTableView.getSelectionModel().getSelectedItem();
+        if (reserva != null){
+            controladorPrincipal.cancelarReserva(reserva.getId());
+            actualizarTabla();
+            controladorPrincipal.crearAlerta("La Reserva se ha cancelado exitosamente", Alert.AlertType.INFORMATION);
         }
 
+    }
 
+    private void actualizarTabla() {
+        List<Reserva> listaConsultatada = controladorPrincipal.obtenerReservas(Sesion.getInstancia().obtenerPersona().getCedula());
+        observableList.setAll(listaConsultatada);
     }
 
     @Override
@@ -60,13 +64,19 @@ public class PanelControlador implements Initializable, ObservableReservas {
         if (this.persona != null){
             this.nombre.setText(persona.getNombre());
             this.tipoPersona.setText(persona.getTipoUsuario().toString());
-        }else {
-            System.out.println("Es null");
         }
+
+        List<Reserva> listaConsultatada = controladorPrincipal.obtenerReservas(Sesion.getInstancia().obtenerPersona().getCedula());
+
+
+        observableList = FXCollections.observableArrayList(listaConsultatada);
+        observableList.setAll(new ArrayList<>(listaConsultatada));
+        reservaTableView.setItems(observableList);
 
         colId.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getId()));
         colFecha.setCellValueFactory(cellData -> new SimpleStringProperty(String.valueOf(cellData.getValue().getFechaReservada())));
-        colInstalacion.setCellValueFactory(cellData -> new SimpleStringProperty(String.valueOf(cellData.getValue().getInstalacion().getNombre())));
+        colInstalacion.setCellValueFactory(cellData -> new SimpleStringProperty(String.valueOf(cellData.getValue().getInstalacion().getTipoInstalacion())));
+        colCosto.setCellValueFactory(cellData -> new SimpleStringProperty(String.valueOf(cellData.getValue().getCosto())));
     }
 
     public void irCrearReserva() throws Exception {
@@ -75,10 +85,17 @@ public class PanelControlador implements Initializable, ObservableReservas {
        crearReservaControlador.inicializarObservable(this);
     }
 
+    public void cerrarSesion() throws Exception {
+        controladorPrincipal.eliminarSesion();
+        controladorPrincipal.navegarVentana("/inicio.fxml", "Inicio");
+        controladorPrincipal.cerrarVentana(reservaTableView);
+
+    }
+
 
     @Override
     public void notificar() {
-        List<Reserva> listaConstltada = controladorPrincipal.obtenerReservas(Sesion.getInstancia().obtenerPersona().getCedula());
-        reservaTableView.setItems(FXCollections.observableArrayList(listaConstltada));
+        List<Reserva> listaConsultatada = controladorPrincipal.obtenerReservas(Sesion.getInstancia().obtenerPersona().getCedula());
+        reservaTableView.setItems(FXCollections.observableArrayList(listaConsultatada));
     }
 }

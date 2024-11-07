@@ -2,8 +2,10 @@ package co.edu.uniquindio.reservasUq.modelo;
 
 import co.edu.uniquindio.reservasUq.modelo.enums.DiaSemana;
 import co.edu.uniquindio.reservasUq.modelo.enums.Rol;
+import co.edu.uniquindio.reservasUq.modelo.enums.TipoInstalacion;
 import co.edu.uniquindio.reservasUq.modelo.enums.TipoUsuario;
 import co.edu.uniquindio.reservasUq.servicio.ServiciosReservas;
+import co.edu.uniquindio.reservasUq.utils.EnvioEmail;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -48,7 +50,7 @@ public class ReservasUq implements ServiciosReservas {
         try {
 
             this.instalaciones.add(Instalacion.builder()
-                    .nombre("Piscina")
+                    .tipoInstalacion(TipoInstalacion.PISCINA)
                     .aforo(100)
                     .id("INS1")
                     .horarios(
@@ -97,6 +99,10 @@ public class ReservasUq implements ServiciosReservas {
             throw new Exception("Cédula inválida");
         }
 
+        if (obtenerPersonaCedula(cedula) != null){
+            throw new Exception("Ya hay una persona registrada con la misma cédula");
+        }
+
         if (correo.isBlank()){
             throw new Exception("El correo es obligatorio");
         }
@@ -104,6 +110,10 @@ public class ReservasUq implements ServiciosReservas {
         String correoRegex = "^[\\w-.]+@([\\w-]+\\.)+[\\w-]{2,4}$";
         if (!correo.matches(correoRegex)) {
             throw new Exception("El formato del correo es inválido");
+        }
+
+        if (obtenerPersonaCorreo(correo) != null){
+            throw new Exception("Ya hay una persona registrada con el mismo correo");
         }
 
         if (contrasena.isBlank()){
@@ -136,10 +146,29 @@ public class ReservasUq implements ServiciosReservas {
         personas.add(persona);
     }
 
+
+    public Persona obtenerPersonaCorreo(String correo){
+        for (Persona persona : personas){
+            if (persona.getCorreo().equals(correo)){
+                return persona;
+            }
+        }
+        return null;
+    }
+
+    public Persona obtenerPersonaCedula(String cedula){
+        for (Persona persona : personas){
+            if (persona.getCedula().equals(cedula)){
+                return persona;
+            }
+        }
+        return null;
+    }
+
     @Override
-    public void crearInstalacion(String nombre, int aforo, float costo, List<Horario> horarios)throws Exception{
-        if (nombre.isBlank()){
-            throw new Exception("El nombre es obligatorio");
+    public void crearInstalacion(TipoInstalacion tipoInstalacion, int aforo, float costo, List<Horario> horarios)throws Exception{
+        if (tipoInstalacion == null){
+            throw new Exception("El tipo de instalacion es obligatorio");
         }
         if (aforo <= 0){
             throw new Exception("El aforo tiene que ser mayor a 0");
@@ -151,7 +180,7 @@ public class ReservasUq implements ServiciosReservas {
 
         Instalacion instalacion = Instalacion.builder()
                 .id(generarid())
-                .nombre(nombre)
+                .tipoInstalacion(tipoInstalacion)
                 .aforo(aforo)
                 .costo(costo)
                 .horarios(horarios)
@@ -208,7 +237,6 @@ public class ReservasUq implements ServiciosReservas {
 
     @Override
     public Reserva crearReserva(Persona persona, Instalacion instalacion, LocalDateTime fechaReservada) throws Exception{
-        System.out.println(fechaReservada);
         if (fechaReservada.isBefore(LocalDateTime.now())){
             throw new Exception("La fecha de la reserva tiene que ser mayor a la fecha actual");
         }
@@ -222,9 +250,6 @@ public class ReservasUq implements ServiciosReservas {
             throw new Exception("Eija una Instalacion");
         }
 
-        if(!estaDisponible(instalacion.getId(), fechaReservada)){
-            throw new Exception("Ya instalación ya está ocupada en el día y hora seleccionada.");
-        }
 
         Reserva reserva = Reserva.builder()
                 .id(generarid())
@@ -232,40 +257,57 @@ public class ReservasUq implements ServiciosReservas {
                 .instalacion(instalacion)
                 .fechaReserva(LocalDateTime.now())
                 .fechaReservada(fechaReservada)
+                .costo(instalacion.getCosto())
                 .build();
 
-        System.out.println(reserva.getFechaReservada());
+        if (controlarAforo(reserva)){
+            throw new Exception("El aforo de la instalación está completo en el horario seleccionado");
+        }
+
+        if (!estaDisponible(reserva)){
+            throw new Exception("Ya ha reservado una instalacion el mismo dia y a la misma hora");
+        }
+
+        if (persona.getTipoUsuario() == TipoUsuario.ESTUDIANTE ||
+                persona.getTipoUsuario() == TipoUsuario.DOCENTE ||
+                persona.getTipoUsuario() == TipoUsuario.ADMINISTRATIVO) {
+            reserva.setCosto(0);
+        }
+
 
         reservas.add(reserva);
         return reserva;
     }
 
-
-
-    @Override
-    public void cancelarReserva(Reserva reserva) throws Exception {
-
-        if (reserva == null){
-            throw new Exception("Elija una reserva");
+    public boolean controlarAforo(Reserva reserva) {
+        int conteoReservas = 0;
+        for (Reserva r : reservas) {
+            if (r.getInstalacion().equals(reserva.getInstalacion()) &&
+                    r.getFechaReservada().equals(reserva.getFechaReservada())) {
+                conteoReservas++;
+            }
         }
-
-        reservas.remove(reserva);
+        return conteoReservas >= reserva.getInstalacion().getAforo();
     }
+
+
+
+
     @Override
-    public void obtenerreservasPersona(List<Reserva> reservas, LocalDateTime fecha) throws Exception{
+    public void cancelarReserva(String idReserva){
         for (Reserva reserva : reservas){
-            if (reserva.getFechaReservada().equals(fecha)){
-                throw new Exception("Ya ha reservado una instalación en este mismo horario");
+            if (reserva.getId().equals(idReserva)){
+                reservas.remove(reserva);
+                break;
             }
         }
     }
 
-    public boolean estaDisponible(String idInstalacion, LocalDateTime fecha){
 
-        for(Reserva reserva: reservas){
-            System.out.println(reserva.getInstalacion().getId());
-            System.out.println(reserva.getFechaReserva());
-            if(reserva.getInstalacion().getId().equals(idInstalacion) && reserva.getFechaReserva().equals(fecha)){
+    public boolean estaDisponible(Reserva reserva){
+
+        for (Reserva reserva1 : reservas){
+            if (reserva1.getPersona().equals(reserva.getPersona()) && reserva1.getFechaReservada().equals(reserva.getFechaReservada())){
                 return false;
             }
         }
@@ -273,6 +315,8 @@ public class ReservasUq implements ServiciosReservas {
         return true;
 
     }
+
+
 
     @Override
     public List<Reserva> obtenerReservas(String idPersona){
@@ -286,6 +330,33 @@ public class ReservasUq implements ServiciosReservas {
         }
 
         return reservasPersona;
+    }
+
+    @Override
+    public void correoConfirmacion(Reserva reserva) {
+        String correo = reserva.getPersona().getCorreo();
+        String nombrePersona = reserva.getPersona().getNombre();
+        LocalDateTime fechaReserva = reserva.getFechaReserva();
+        LocalDateTime fechaReservada = reserva.getFechaReservada();
+        String id = reserva.getId();
+        String nombreInstalacion = String.valueOf(reserva.getInstalacion().getTipoInstalacion());
+        double costoReserva = reserva.getCosto();
+
+        String asunto = "Confirmación de Reserva - Instalación";
+
+        String mensaje = "Hola " + nombrePersona + ",\n\n" +
+                "Gracias por realizar una reserva en nuestras instalaciones. Aquí están los detalles de su reserva:\n\n" +
+                "Fecha de la reserva: " + fechaReserva + "\n" +
+                "Fecha de la instalación reservada: " + fechaReservada + "\n" +
+                "ID de la reserva: " + id + "\n" +
+                "Instalación reservada: " + nombreInstalacion + "\n" +
+                "Costo de la reserva: $" + String.format("%.2f", costoReserva) + "\n\n" +
+                "Si tiene alguna pregunta, no dude en contactarnos.\n" +
+                "Atentamente,\n" +
+                "Universidad del Quindío";
+
+        EnvioEmail envioEmail = new EnvioEmail(correo, asunto, mensaje);
+        envioEmail.enviarNotificacion();
     }
 
 }

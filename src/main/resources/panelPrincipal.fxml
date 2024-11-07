@@ -33,12 +33,13 @@
         <columns>
           <TableColumn fx:id="colId" prefWidth="115.99999392032623" text="ID" />
           <TableColumn fx:id="colFecha" prefWidth="197.59996795654297" text="Fecha" />
-            <TableColumn fx:id="colInstalacion" prefWidth="265.5999755859375" text="Instalación" />
+            <TableColumn fx:id="colInstalacion" prefWidth="156.0" text="Instalación" />
+            <TableColumn fx:id="colCosto" prefWidth="109.5999755859375" text="Costo" />
         </columns>
       </TableView>
       <VBox prefHeight="200.0" prefWidth="100.0" spacing="20.0" GridPane.columnIndex="2" GridPane.rowIndex="1">
          <children>
-            <Button mnemonicParsing="false" text="Cerrar Sesión" />
+            <Button mnemonicParsing="false" onAction="#cerrarSesion" text="Cerrar Sesión" />
             <Text fx:id="tipoPersona" strokeType="OUTSIDE" strokeWidth="0.0" text="Text" />
          </children>
          <padding>
@@ -47,8 +48,8 @@
       </VBox>
       <HBox prefHeight="68.0" prefWidth="580.0" spacing="20.0" GridPane.columnIndex="1" GridPane.rowIndex="3">
          <children>
-            <Button onAction="#irCrearReserva" mnemonicParsing="false" text="Crear Reserva" />
-            <Button onAction="#cancelarReserva" mnemonicParsing="false" text="Cancelar Reserva" />
+            <Button mnemonicParsing="false" onAction="#irCrearReserva" text="Crear Reserva" />
+            <Button mnemonicParsing="false" onAction="#cancelarReserva" text="Cancelar Reserva" />
          </children>
          <padding>
             <Insets top="20.0" />

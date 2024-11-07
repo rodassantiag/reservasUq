@@ -15,5 +15,6 @@ public class Reserva {
     private Instalacion instalacion;
     private LocalDateTime fechaReserva;
     private LocalDateTime fechaReservada;
+    private double costo;
 
 }

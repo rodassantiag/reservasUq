@@ -4,10 +4,8 @@ import co.edu.uniquindio.reservasUq.modelo.Horario;
 import co.edu.uniquindio.reservasUq.modelo.Instalacion;
 import co.edu.uniquindio.reservasUq.modelo.Persona;
 import co.edu.uniquindio.reservasUq.modelo.Reserva;
-import co.edu.uniquindio.reservasUq.modelo.enums.DiaSemana;
+import co.edu.uniquindio.reservasUq.modelo.enums.TipoInstalacion;
 import co.edu.uniquindio.reservasUq.modelo.enums.TipoUsuario;
-
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
@@ -19,7 +17,7 @@ public interface ServiciosReservas {
     void registrarPersona(String nombre, String cedula, String correo, String contrasena,
                           TipoUsuario tipoUsuario) throws Exception;
 
-    void crearInstalacion(String nombre, int aforo, float costo, List<Horario> horarios)throws Exception;
+    void crearInstalacion(TipoInstalacion tipoInstalacion, int aforo, float costo, List<Horario> horarios)throws Exception;
 
     List<LocalTime> generarHoras(LocalTime horaInicio, LocalTime horaFin) throws Exception;
 
@@ -27,9 +25,9 @@ public interface ServiciosReservas {
 
     Reserva crearReserva(Persona persona, Instalacion instalacion, LocalDateTime fechaReservada) throws Exception;
 
-    void cancelarReserva(Reserva reserva) throws Exception;
-
-    void obtenerreservasPersona(List<Reserva> reservas, LocalDateTime fecha) throws Exception;
+    void cancelarReserva(String idReserva);
 
     List<Reserva> obtenerReservas(String idPersona);
+
+    void correoConfirmacion(Reserva reserva);
 }
